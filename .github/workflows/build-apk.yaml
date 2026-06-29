@@ -1,0 +1,41 @@
+name: Jenga APK (Build Android APK)
+
+# Hii hujenga APK kiotomatiki kwenye wingu (GitHub servers) kila unapopandisha (push) code.
+# Hauitaji Flutter au Android Studio kwenye simu yako - simu inahitajika tu kuhariri faili
+# na kupandisha mabadiliko (kwa mfano kupitia app ya "Working Copy" / "GitHub" / "Termux" / "Codemagic").
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch: {}   # huruhusu kubonyeza "Run workflow" moja kwa moja kwenye GitHub app
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pakua Code (Checkout)
+        uses: actions/checkout@v4
+
+      - name: Weka Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Weka Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+
+      - name: Pakua Vifurushi (pub get)
+        run: flutter pub get
+
+      - name: Jenga APK (Release)
+        run: flutter build apk --release
+
+      - name: Hifadhi APK kama Matokeo (Artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ales-masaba-feed-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
