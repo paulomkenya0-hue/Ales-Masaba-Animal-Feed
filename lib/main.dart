@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'core/theme/app_theme.dart';
 import 'core/constants/strings_sw.dart';
 import 'presentation/providers/auth_provider.dart';
@@ -14,7 +15,9 @@ import 'presentation/screens/splash/splash_screen.dart';
 void main() async {
   runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
-    await initializeDateFormatting('sw'); // huwezesha DateFormat ya tarehe kwa Kiswahili
+    // Zima jaribio la GoogleFonts kupakua fonti mtandaoni (app ni OFFLINE 100%)
+    GoogleFonts.config.allowRuntimeFetching = false;
+    await initializeDateFormatting('sw');
     runApp(const AlesMasabaApp());
   }, (error, stackTrace) {
     runApp(MaterialApp(
@@ -35,7 +38,6 @@ void main() async {
   });
 }
 
-/// AlesMasabaApp - Sehemu kuu ya programu. Lugha: Kiswahili pekee.
 class AlesMasabaApp extends StatelessWidget {
   const AlesMasabaApp({super.key});
 
