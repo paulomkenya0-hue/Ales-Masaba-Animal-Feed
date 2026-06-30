@@ -1,11 +1,11 @@
 workflows:
   ales-masaba-feed-android:
     name: Ales Masaba Animal Feed - Android Build
-    max_build_duration: 45
+    max_build_duration: 60
 
     environment:
-      flutter: stable  # ← BADILISHA! (ilikuwa "3.35.2")
-      java: 17         # ← Ongeza Java version
+      flutter: stable
+      java: 17
 
       vars:
         PACKAGE_NAME: "com.alesmasaba.feed"
@@ -25,9 +25,11 @@ workflows:
 
       - name: Build APK
         script: |
+          cd android
+          chmod +x gradlew
+          ./gradlew clean
+          cd ..
           flutter build apk --release
-          # Au jenga split APKs (ndogo)
-          # flutter build apk --release --split-per-abi
 
     artifacts:
       - build/app/outputs/flutter-apk/*.apk
