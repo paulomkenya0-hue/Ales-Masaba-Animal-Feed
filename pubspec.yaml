@@ -23,7 +23,7 @@ dependencies:
 
   # Security & Authentication
   crypto: ^3.0.6
-  local_auth: ^2.1.6  # ← IMESHUKA (ilikuwa 2.3.0) - inafanya kazi na SDK 34
+  # local_auth: ^2.1.6  # ← IMESHUKA (ilikuwa 2.3.0) - inafanya kazi na SDK 34
   shared_preferences: ^2.5.3
 
   # Charts & UI
