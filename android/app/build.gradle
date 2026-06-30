@@ -24,7 +24,7 @@ if (flutterVersionName == null) {
 
 android {
     namespace "com.alesmasaba.feed"
-    compileSdk = 34
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -42,8 +42,8 @@ android {
 
     defaultConfig {
         applicationId = "com.alesmasaba.feed"
-        minSdk = 21
-        targetSdk = 34
+        minSdk = 23
+        targetSdk = 36
         versionCode = flutterVersionCode.toInteger()
         versionName = flutterVersionName
         multiDexEnabled true
