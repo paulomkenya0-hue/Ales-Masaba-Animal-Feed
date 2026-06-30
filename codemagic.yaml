@@ -24,7 +24,7 @@ workflows:
         script: dart run flutter_launcher_icons
 
       - name: Build APK
-        script: flutter build apk --release  # ← ONDOA chmod na ./gradlew
+        script: flutter build apk --release
 
     artifacts:
       - build/app/outputs/flutter-apk/*.apk
