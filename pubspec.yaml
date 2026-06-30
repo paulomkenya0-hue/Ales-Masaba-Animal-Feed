@@ -31,7 +31,7 @@ dependencies:
 
   # Receipts / Reports export
   pdf: ^3.10.8
-  printing: ^5.12.0
+  printing: ^5.14.2
   excel: ^4.0.3
   share_plus: ^9.0.0
 
