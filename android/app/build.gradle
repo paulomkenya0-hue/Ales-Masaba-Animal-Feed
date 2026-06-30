@@ -24,16 +24,19 @@ if (flutterVersionName == null) {
 
 android {
     namespace "com.alesmasaba.feed"
-    compileSdk = flutter.compileSdkVersion
+    // Tumeweka thamani moja kwa moja (si flutter.compileSdkVersion) kwa sababu baadhi ya
+    // vifurushi (mfano "printing") vinahitaji rasilimali za Android 12+ (android:attr/lStar),
+    // na thamani ya kiotomatiki ya Flutter wakati mwingine haitoshi.
+    compileSdk = 35
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8
+        jvmTarget = JavaVersion.VERSION_17
     }
 
     defaultConfig {
@@ -41,7 +44,7 @@ android {
         applicationId "com.alesmasaba.feed"
         // local_auth (alama ya kidole) inahitaji minSdk 23 angalau
         minSdk 23
-        targetSdk = flutter.targetSdkVersion
+        targetSdk = 35
         versionCode = flutterVersionCode.toInteger()
         versionName = flutterVersionName
         multiDexEnabled true
