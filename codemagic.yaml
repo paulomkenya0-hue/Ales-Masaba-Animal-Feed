@@ -1,20 +1,28 @@
 workflows:
   ales-masaba-feed-android:
     name: Ales Masaba Animal Feed - Android Build
-    max_build_duration: 30
+    max_build_duration: 45
+
     environment:
-      flutter: stable
+      flutter: "3.35.2"
+
       vars:
         PACKAGE_NAME: "com.alesmasaba.feed"
 
     scripts:
-      - name: Pakua Vifurushi
+      - name: Flutter Version
+        script: flutter --version
+
+      - name: Clean
+        script: flutter clean
+
+      - name: Download Packages
         script: flutter pub get
 
-      - name: Tengeneza Aikoni
+      - name: Generate Launcher Icons
         script: dart run flutter_launcher_icons
 
-      - name: Jenga APK
+      - name: Build APK
         script: flutter build apk --release
 
     artifacts:
