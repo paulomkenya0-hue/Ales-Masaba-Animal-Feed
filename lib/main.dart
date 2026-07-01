@@ -12,9 +12,27 @@ import 'presentation/providers/settings_provider.dart';
 import 'presentation/screens/splash/splash_screen.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await initializeDateFormatting('sw');
-  runApp(const AlesMasabaApp());
+  runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    await initializeDateFormatting('sw');
+    runApp(const AlesMasabaApp());
+  }, (error, stackTrace) {
+    runApp(MaterialApp(
+      home: Scaffold(
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: SingleChildScrollView(
+              child: Text(
+                'CRASH ERROR:\n\n$error\n\n$stackTrace',
+                style: const TextStyle(color: Colors.red, fontSize: 12),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ));
+  });
 }
 
 class AlesMasabaApp extends StatelessWidget {
