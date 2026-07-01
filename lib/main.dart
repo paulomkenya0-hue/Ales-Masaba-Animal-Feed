@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'core/theme/app_theme.dart';
@@ -59,7 +60,12 @@ class AlesMasabaApp extends StatelessWidget {
         darkTheme: AppTheme.dark(),
         themeMode: ThemeMode.light,
         locale: const Locale('sw'),
-        supportedLocales: const [Locale('sw')],
+        supportedLocales: const [Locale('sw'), Locale('en')],
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
         home: const SplashScreen(),
       ),
     );
