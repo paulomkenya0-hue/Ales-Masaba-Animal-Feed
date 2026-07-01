@@ -27,8 +27,8 @@ dependencies:
   shared_preferences: ^2.5.3
 
   # Charts & UI
-  fl_chart: ^1.0.0
-  google_fonts: ^6.3.1
+  fl_chart: ^0.68.0
+ # google_fonts: ^6.3.1
   intl: ^0.20.2
 
   # PDF & Printing (VERSION ZIMESHUKA KWA SABABU SDK 34)
