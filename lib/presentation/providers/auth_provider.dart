@@ -3,7 +3,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../data/models/user_model.dart';
 
-/// AuthProvider - Hali ya uthibitishaji wa mtumiaji katika programu nzima
 class AuthProvider extends ChangeNotifier {
   final _repo = AuthRepository();
 
@@ -16,7 +15,8 @@ class AuthProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  Future<bool> login(String username, String password, {bool rememberMe = false}) async {
+  Future<bool> login(String username, String password,
+      {bool rememberMe = false}) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -26,7 +26,7 @@ class AuthProvider extends ChangeNotifier {
       _currentUser = user;
 
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('saved_username', username); // inahitajika kwa alama ya kidole
+      await prefs.setString('saved_username', username);
       if (rememberMe) {
         await prefs.setBool('remember_login', true);
       }
@@ -47,36 +47,6 @@ class AuthProvider extends ChangeNotifier {
     final remember = prefs.getBool('remember_login') ?? false;
     if (!remember) return null;
     return prefs.getString('saved_username');
-  }
-
-  Future<bool> isBiometricEnabled() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool('biometric_enabled') ?? false;
-  }
-
-  Future<void> setBiometricEnabled(bool enabled) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('biometric_enabled', enabled);
-  }
-
-  /// Inaitwa baada ya alama ya kidole kuthibitishwa kwa mafanikio na BiometricHelper
-  Future<bool> loginWithBiometric() async {
-    final prefs = await SharedPreferences.getInstance();
-    final username = prefs.getString('saved_username');
-    if (username == null) {
-      _errorMessage = 'Ingia mara moja kwa nenosiri kabla ya kutumia alama ya kidole';
-      notifyListeners();
-      return false;
-    }
-    try {
-      _currentUser = await _repo.loginWithBiometric(username);
-      notifyListeners();
-      return true;
-    } catch (e) {
-      _errorMessage = e.toString().replaceFirst('Exception: ', '');
-      notifyListeners();
-      return false;
-    }
   }
 
   Future<void> logout() async {
