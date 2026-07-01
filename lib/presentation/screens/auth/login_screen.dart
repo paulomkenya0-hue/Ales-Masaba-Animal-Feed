@@ -31,10 +31,15 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _checkBiometric() async {
-    final available = await BiometricHelper.isAvailable();
-    final enabled = await context.read<AuthProvider>().isBiometricEnabled();
-    if (mounted) setState(() => _biometricAvailable = available && enabled);
-  }
+    try {
+      final available = await BiometricHelper.isAvailable();
+      final enabled = await context.read<AuthProvider>().isBiometricEnabled();
+      if (mounted) setState(() => _biometricAvailable = available && enabled);
+    } catch (_) {
+      // Kifaa hakina alama ya kidole - endelea bila hitilafu
+      if (mounted) setState(() => _biometricAvailable = false);
+    }
+  } 
 
   Future<void> _loginWithFingerprint() async {
     final success = await BiometricHelper.authenticate();
