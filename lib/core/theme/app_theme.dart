@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
-/// Rangi rasmi za AMAF: Kijani, Nyeupe, Kijivu Iliyoiva (Dark Gray)
 class AppColors {
   static const primaryGreen = Color(0xFF1B7A3D);
   static const lightGreen = Color(0xFF4CAF50);
@@ -22,7 +20,7 @@ class AppTheme {
         brightness: Brightness.light,
       ),
       scaffoldBackgroundColor: AppColors.lightGray,
-      textTheme: GoogleFonts.poppinsTextTheme(base.textTheme),
+      textTheme: base.textTheme.apply(fontFamily: 'sans-serif'),
       appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.primaryGreen,
         foregroundColor: AppColors.white,
@@ -63,7 +61,7 @@ class AppTheme {
         brightness: Brightness.dark,
       ),
       scaffoldBackgroundColor: AppColors.darkGray,
-      textTheme: GoogleFonts.poppinsTextTheme(base.textTheme),
+      textTheme: base.textTheme.apply(fontFamily: 'sans-serif'),
       appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.darkGreen,
         foregroundColor: AppColors.white,
