@@ -11,21 +11,25 @@ import 'presentation/providers/dashboard_provider.dart';
 import 'presentation/providers/settings_provider.dart';
 import 'presentation/screens/splash/splash_screen.dart';
 
-void main() async {
+void main() {
   runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
+    FlutterError.onError = (details) {
+      Zone.current.handleUncaughtError(details.exception, details.stack!);
+    };
     await initializeDateFormatting('sw');
     runApp(const AlesMasabaApp());
   }, (error, stackTrace) {
     runApp(MaterialApp(
       home: Scaffold(
+        backgroundColor: Colors.white,
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: SingleChildScrollView(
               child: Text(
                 'CRASH ERROR:\n\n$error\n\n$stackTrace',
-                style: const TextStyle(color: Colors.red, fontSize: 12),
+                style: const TextStyle(color: Colors.red, fontSize: 11),
               ),
             ),
           ),
