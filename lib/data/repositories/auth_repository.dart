@@ -201,19 +201,33 @@ class AuthRepository {
     }
   }
 
-  Future<int> _cacheUserLocally(UserModel user) async {
-    final db = await dbHelper.database;
-    final existing = await db.query('users', where: 'uid = ?', whereArgs: [user.uid]);
-    final map = user.toMap()..remove('id');
-    if (existing.isEmpty) {
-      return await db.insert('users', map);
-    } else {
-      final localId = existing.first['id'] as int;
-      await db.update('users', map, where: 'uid = ?', whereArgs: [user.uid]);
-      return localId;
-    }
-  }
+Future<int> _cacheUserLocally(UserModel user) async {
+  final db = await dbHelper.database;
 
+  // Tafuta kwa uid AU username
+  final existing = await db.query(
+    'users',
+    where: 'uid = ? OR username = ?',
+    whereArgs: [user.uid, user.username],
+  );
+
+  final map = user.toMap()..remove('id');
+
+  if (existing.isEmpty) {
+    return await db.insert('users', map);
+  } else {
+    final localId = existing.first['id'] as int;
+
+    await db.update(
+      'users',
+      map,
+      where: 'id = ?',
+      whereArgs: [localId],
+    );
+
+    return localId;
+  }
+}
   /// Inatumika BAADA YA alama ya kidole kuthibitishwa na mfumo wa simu (local_auth).
   Future<UserModel> loginWithBiometric(String username) async {
     final db = await dbHelper.database;
