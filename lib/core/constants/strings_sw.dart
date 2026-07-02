@@ -202,9 +202,7 @@ class SW {
   static const customerStatement = "Taarifa ya Mteja";
   static const totalOwed = "Jumla ya Deni";
   static const noCreditHistory = "Mteja huyu hana historia ya mkopo";
-  static const paymentHistory = "Historia ya Malipo";
   static const customPeriod = "Chagua Tarehe";
-  static const topSellingProducts = "Bidhaa Zinazouzwa Zaidi";
   static const expensesByCategory = "Matumizi kwa Aina";
   static const stockValue = "Thamani ya Hifadhi";
   static const stockValueCost = "Kwa Bei ya Ununuzi";
