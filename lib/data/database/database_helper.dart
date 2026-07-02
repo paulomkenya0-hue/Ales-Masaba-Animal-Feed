@@ -234,15 +234,18 @@ class DatabaseHelper {
     // kiotomatiki na Firebase Auth (kuwa Super Admin halisi) mara ya kwanza
     // itakapoingia ikiwa na intaneti. Angalia AuthRepository._tryBootstrapLocalAdmin.
     final defaultPasswordHash = _hashPassword('admin123');
-    await db.insert('users', {
-      'username': 'admin',
-      'password_hash': defaultPasswordHash,
-      'full_name': 'Msimamizi Mkuu',
-      'role': 'super_admin',
-      'created_at': now,
-      'is_active': 1,
-    });
-
+    await db.insert(
+  'users',
+  {
+    'username': 'admin',
+    'password_hash': defaultPasswordHash,
+    'full_name': 'Msimamizi Mkuu',
+    'role': 'super_admin',
+    'created_at': now,
+    'is_active': 1,
+  },
+  conflictAlgorithm: ConflictAlgorithm.ignore,
+);
     await db.insert('settings', {
       'business_name': 'Ales Masaba Animal Feed',
       'currency': 'TZS',
