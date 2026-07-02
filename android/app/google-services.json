@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "000000000000",
-    "project_id": "REPLACE-WITH-YOUR-FIREBASE-PROJECT-ID",
-    "storage_bucket": "REPLACE-WITH-YOUR-FIREBASE-PROJECT-ID.appspot.com"
+    "project_number": "800660673530",
+    "project_id": "ales-masaba-feed",
+    "storage_bucket": "ales-masaba-feed.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:000000000000:android:0000000000000000000000",
+        "mobilesdk_app_id": "1:800660673530:android:55dc5529a0e29cd6d44a43",
         "android_client_info": {
           "package_name": "com.alesmasaba.feed"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "REPLACE-WITH-YOUR-API-KEY"
+          "current_key": "AIzaSyAVz4bs-Ge54k9xkWL0tLFL8Wcdqx44UVo"
         }
       ],
       "services": {
