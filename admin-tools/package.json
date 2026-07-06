@@ -1,0 +1,9 @@
+{
+  "name": "amaf-admin-tools",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Zana za dharura za Msimamizi (Firebase Admin SDK) - si sehemu ya app ya Flutter",
+  "dependencies": {
+    "firebase-admin": "^12.0.0"
+  }
+}
