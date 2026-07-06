@@ -8,6 +8,7 @@ import '../../../data/repositories/sales_repository.dart';
 import '../../../data/repositories/expense_repository.dart';
 import '../../../data/repositories/product_repository.dart';
 import '../../../data/repositories/credit_repository.dart';
+import '../../../data/repositories/auth_repository.dart';
 import '../../../data/models/sale_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/settings_provider.dart';
@@ -30,6 +31,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
   final _expenseRepo = ExpenseRepository();
   final _productRepo = ProductRepository();
   final _creditRepo = CreditRepository();
+  final _authRepo = AuthRepository();
   final _currencyFmt = NumberFormat.currency(locale: 'sw', symbol: 'TZS ', decimalDigits: 0);
   final _dateFmt = DateFormat('dd/MM/yyyy');
 
@@ -45,6 +47,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
   Map<String, double> _expenseByCategory = {};
   Map<String, double> _stockValue = {'cost': 0, 'retail': 0};
   List<SaleModel> _salesList = [];
+  List<Map<String, dynamic>> _sellerBreakdown = [];
 
   @override
   void initState() {
@@ -97,6 +100,31 @@ class _ReportsScreenState extends State<ReportsScreen> {
       _salesList = results[7] as List<SaleModel>;
       _loading = false;
     });
+
+    await _computeSellerBreakdown();
+  }
+
+  Future<void> _computeSellerBreakdown() async {
+    final Map<String, double> totalBySeller = {};
+    final Map<String, int> countBySeller = {};
+    for (final s in _salesList) {
+      final uid = s.userId ?? 'Haijulikani';
+      totalBySeller[uid] = (totalBySeller[uid] ?? 0) + s.totalAmount;
+      countBySeller[uid] = (countBySeller[uid] ?? 0) + 1;
+    }
+    final names = await _authRepo.getUserNames(totalBySeller.keys.toSet());
+
+    final rows = totalBySeller.entries
+        .map((e) => {
+              'uid': e.key,
+              'name': names[e.key] ?? e.key,
+              'total': e.value,
+              'count': countBySeller[e.key] ?? 0,
+            })
+        .toList();
+    rows.sort((a, b) => (b['total'] as double).compareTo(a['total'] as double));
+
+    if (mounted) setState(() => _sellerBreakdown = rows);
   }
 
   Future<void> _pickCustomRange() async {
@@ -291,6 +319,29 @@ class _ReportsScreenState extends State<ReportsScreen> {
                         Text(SW.outstandingCreditReport, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                         const SizedBox(height: 10),
                         _reportCard(SW.outstandingCreditReport, _outstandingCredit, isDanger: _outstandingCredit > 0),
+
+                        const SizedBox(height: 24),
+                        Text(SW.salesBySeller, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 10),
+                        if (_sellerBreakdown.isEmpty)
+                          const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: Text(SW.noSalesInPeriod))
+                        else
+                          ..._sellerBreakdown.map((row) => Card(
+                                margin: const EdgeInsets.only(bottom: 8),
+                                child: ListTile(
+                                  leading: const CircleAvatar(
+                                    backgroundColor: AppColors.primaryGreen,
+                                    foregroundColor: Colors.white,
+                                    child: Icon(Icons.person_outline, size: 18),
+                                  ),
+                                  title: Text(row['name'] as String),
+                                  subtitle: Text('${row['count']} ${SW.numberOfSales}'),
+                                  trailing: Text(
+                                    _currencyFmt.format(row['total']),
+                                    style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryGreen),
+                                  ),
+                                ),
+                              )),
 
                         const SizedBox(height: 24),
                         Text('Hamisha Ripoti', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
