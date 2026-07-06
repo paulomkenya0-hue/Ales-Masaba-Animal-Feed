@@ -90,6 +90,7 @@ class AuthProvider extends ChangeNotifier {
     required String password,
     required String branchName,
     String? fullName,
+    String role = AppRole.cashier,
   }) async {
     if (_currentUser?.uid == null) {
       _errorMessage = 'Lazima uwe umeingia kama Msimamizi Mkuu';
@@ -103,6 +104,7 @@ class AuthProvider extends ChangeNotifier {
         branchName: branchName,
         fullName: fullName,
         createdByUid: _currentUser!.uid!,
+        role: role,
       );
     } catch (e) {
       _errorMessage = e.toString().replaceFirst('Exception: ', '');
@@ -110,6 +112,21 @@ class AuthProvider extends ChangeNotifier {
       return null;
     }
   }
+
+  /// Sajili Msimamizi Mkuu MWINGINE (akaunti huru, isiyotegemea password ya
+  /// mtu mwingine) - muhimu ili developer/mmiliki asifungiwe nje.
+  Future<UserModel?> registerAnotherSuperAdmin({
+    required String username,
+    required String password,
+    String? fullName,
+  }) =>
+      registerCashier(
+        username: username,
+        password: password,
+        branchName: fullName ?? username,
+        fullName: fullName,
+        role: AppRole.superAdmin,
+      );
 
   Stream<List<UserModel>> watchCashiers() => _repo.watchCashiers();
 
