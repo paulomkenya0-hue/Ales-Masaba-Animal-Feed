@@ -233,4 +233,18 @@ class SW {
   static const confirmDelete = "Una hakika unataka kufuta kumbukumbu hii?";
   static const deletedSuccess = "Imefutwa kwa mafanikio";
   static const savedSuccess = "Imehifadhiwa kwa mafanikio";
+  
+  // Bei ya Maelewano (Negotiated Price) na Ripoti kwa Muuzaji
+  static const priceLevel = "Bei ya Kawaida";
+  static const negotiatedPrice = "Bei ya Maelewano";
+  static const negotiatedPriceHint = "Badilisha kama mmeelewana bei nyingine";
+  static const subtotal = "Kiasi";
+  static const mySalesReport = "Ripoti Yangu ya Mauzo";
+  static const salesBySeller = "Mauzo kwa Muuzaji";
+  static const seller = "Muuzaji";
+  static const myTodaySales = "Mauzo Yangu Leo";
+  static const myWeekSales = "Mauzo Yangu Wiki Hii";
+  static const myMonthSales = "Mauzo Yangu Mwezi Huu";
+  static const myTotalSalesCount = "Idadi ya Mauzo Yangu";
+  static const bargainDiscount = "Punguzo la Maelewano";
 }
