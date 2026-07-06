@@ -245,12 +245,17 @@ Future<int> _cacheUserLocally(UserModel user) async {
   /// Super Admin anasajili Cashier mpya: Branch/Station Name + Username +
   /// Password (fixed). Inatumia FirebaseApp ya pili ili Super Admin
   /// asitolewe nje (asi-sign-out) wakati akaunti mpya inapoundwa.
+  /// Husajili mtumiaji mpya (Cashier kwa kawaida, au Super Admin mwingine
+  /// ikiwa [role] = AppRole.superAdmin - hii ni muhimu ili Msimamizi Mkuu
+  /// awe na akaunti zaidi ya moja huru, badala ya kutegemea akaunti moja
+  /// ambayo mtu mwingine anaweza kubadilisha password yake na kumfungia nje.
   Future<UserModel> registerCashier({
     required String username,
     required String password,
     required String branchName,
     String? fullName,
     required String createdByUid,
+    String role = AppRole.cashier,
   }) async {
     final secondaryAuth = await FirebaseService.adminAuth();
     try {
@@ -263,7 +268,7 @@ Future<int> _cacheUserLocally(UserModel user) async {
       final userData = {
         'username': username.trim(),
         'fullName': fullName,
-        'role': AppRole.cashier,
+        'role': role,
         'branchName': branchName,
         'email': FirebaseService.usernameToEmail(username),
         'isActive': true,
@@ -282,11 +287,31 @@ Future<int> _cacheUserLocally(UserModel user) async {
       if (e.code == 'weak-password') {
         throw Exception('Nenosiri ni fupi mno. Tumia angalau herufi 6.');
       }
-      throw Exception('Imeshindikana kusajili Cashier: ${e.message ?? e.code}');
+      throw Exception('Imeshindikana kusajili mtumiaji: ${e.message ?? e.code}');
     } finally {
       // Safisha session ya app ya pili (haiathiri Super Admin wa app kuu)
       await FirebaseService.resetAdminApp();
     }
+  }
+
+  /// Ramani ya uid -> jina la kuonyesha (username au fullName), kwa ajili
+  /// ya Ripoti ya "Mauzo kwa Muuzaji" (Super Admin pekee anaweza kusoma
+  /// users wote kwa mujibu wa Firestore Security Rules).
+  Future<Map<String, String>> getUserNames(Set<String> uids) async {
+    final Map<String, String> names = {};
+    for (final uid in uids) {
+      if (uid.isEmpty) continue;
+      final doc = await FirebaseService.usersRef.doc(uid).get();
+      if (doc.exists) {
+        final data = doc.data()!;
+        names[uid] = (data['fullName'] as String?)?.trim().isNotEmpty == true
+            ? data['fullName'] as String
+            : (data['branchName'] as String?) ?? (data['username'] as String? ?? uid);
+      } else {
+        names[uid] = uid;
+      }
+    }
+    return names;
   }
 
   /// Orodha ya Cashier/maduka yote (Super Admin pekee)
