@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/strings_sw.dart';
+import '../../../data/models/user_model.dart';
 import '../../providers/auth_provider.dart';
 
 /// RegisterCashierScreen - Super Admin anasajili Cashier mpya (duka/tawi
-/// jipya) akiwa na Username na Password fixed. Cashier ataingia kwa taarifa
-/// hizi hizi (Super Admin pekee ndiye anayeweza kuzibadilisha baadaye).
+/// jipya) AU Msimamizi Mkuu mwingine (akaunti huru), akiwa na Username na
+/// Password fixed. Super Admin ndiye pekee anayeweza kubadilisha baadaye.
 class RegisterCashierScreen extends StatefulWidget {
   const RegisterCashierScreen({super.key});
 
@@ -22,6 +23,7 @@ class _RegisterCashierScreenState extends State<RegisterCashierScreen> {
   final _confirmPasswordCtrl = TextEditingController();
   bool _obscurePassword = true;
   bool _isSaving = false;
+  String _role = AppRole.cashier;
 
   @override
   void dispose() {
@@ -49,13 +51,14 @@ class _RegisterCashierScreenState extends State<RegisterCashierScreen> {
       password: _passwordCtrl.text,
       branchName: _branchCtrl.text.trim(),
       fullName: _fullNameCtrl.text.trim().isEmpty ? null : _fullNameCtrl.text.trim(),
+      role: _role,
     );
     setState(() => _isSaving = false);
 
     if (!mounted) return;
     if (result != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(SW.cashierRegistered)),
+        SnackBar(content: Text(_role == AppRole.superAdmin ? 'Msimamizi Mkuu ameongezwa' : SW.cashierRegistered)),
       );
       Navigator.pop(context);
     } else {
@@ -67,19 +70,40 @@ class _RegisterCashierScreenState extends State<RegisterCashierScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isSuperAdminRole = _role == AppRole.superAdmin;
     return Scaffold(
-      appBar: AppBar(title: const Text(SW.registerCashier)),
+      appBar: AppBar(title: Text(isSuperAdminRole ? 'Ongeza Msimamizi Mkuu' : SW.registerCashier)),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Form(
           key: _formKey,
           child: ListView(
             children: [
+              SegmentedButton<String>(
+                segments: const [
+                  ButtonSegment(value: AppRole.cashier, label: Text(SW.cashierLabel)),
+                  ButtonSegment(value: AppRole.superAdmin, label: Text('Msimamizi Mkuu')),
+                ],
+                selected: {_role},
+                onSelectionChanged: (s) => setState(() => _role = s.first),
+              ),
+              const SizedBox(height: 14),
+              if (isSuperAdminRole)
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  margin: const EdgeInsets.only(bottom: 14),
+                  decoration: BoxDecoration(color: Colors.amber.shade50, borderRadius: BorderRadius.circular(8)),
+                  child: const Text(
+                    'Akaunti hii itakuwa na uwezo KAMILI (kama wako) - itumike kwa mmiliki/developer pekee, '
+                    'ili asifungiwe nje hata kama akaunti nyingine zikibadilishwa password.',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                ),
               TextFormField(
                 controller: _branchCtrl,
-                decoration: const InputDecoration(
-                  labelText: SW.branchName,
-                  prefixIcon: Icon(Icons.storefront),
+                decoration: InputDecoration(
+                  labelText: isSuperAdminRole ? 'Jina la Kutambulisha (mf. Mmiliki)' : SW.branchName,
+                  prefixIcon: const Icon(Icons.storefront),
                 ),
                 validator: (v) => (v == null || v.trim().isEmpty) ? SW.required : null,
               ),
