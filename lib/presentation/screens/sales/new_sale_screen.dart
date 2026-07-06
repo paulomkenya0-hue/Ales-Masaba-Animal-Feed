@@ -34,40 +34,92 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
 
   void _addProductToCart(ProductModel product) {
     final qtyCtrl = TextEditingController(text: '1');
+    final basePrice = _priceLevel == 'retail' ? product.retailPrice : product.wholesalePrice;
+    final priceCtrl = TextEditingController(text: basePrice.toStringAsFixed(0));
+    String subtotalText = _currencyFmt.format(basePrice);
+
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(product.name),
-        content: TextField(
-          controller: qtyCtrl,
-          autofocus: true,
-          keyboardType: TextInputType.number,
-          decoration: InputDecoration(labelText: '${SW.quantity} (${product.unit})'),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text(SW.cancel)),
-          ElevatedButton(
-            onPressed: () {
-              final qty = double.tryParse(qtyCtrl.text) ?? 0;
-              if (qty <= 0) return;
-              if (qty > product.quantity) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text(SW.outOfStock)));
-                return;
-              }
-              final price = _priceLevel == 'retail' ? product.retailPrice : product.wholesalePrice;
-              context.read<SalesProvider>().addToCart(SaleItemModel(
-                    productId: product.id!,
-                    productName: product.name,
-                    quantity: qty,
-                    unitPrice: price,
-                    subtotal: price * qty,
-                  ));
-              Navigator.pop(context);
-            },
-            child: const Text(SW.add),
-          ),
-        ],
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) {
+          void recompute() {
+            final qty = double.tryParse(qtyCtrl.text) ?? 0;
+            final price = double.tryParse(priceCtrl.text) ?? 0;
+            setDialogState(() => subtotalText = _currencyFmt.format(qty * price));
+          }
+
+          return AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: Text(product.name),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${SW.priceLevel}: ${_currencyFmt.format(basePrice)} / ${product.unit}',
+                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: qtyCtrl,
+                  autofocus: true,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(labelText: '${SW.quantity} (${product.unit})'),
+                  onChanged: (_) => recompute(),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: priceCtrl,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: SW.negotiatedPrice,
+                    helperText: SW.negotiatedPriceHint,
+                    prefixIcon: const Icon(Icons.handshake_outlined),
+                  ),
+                  onChanged: (_) => recompute(),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryGreen.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(SW.subtotal, style: TextStyle(fontWeight: FontWeight.bold)),
+                      Text(subtotalText, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryGreen)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text(SW.cancel)),
+              ElevatedButton(
+                onPressed: () {
+                  final qty = double.tryParse(qtyCtrl.text) ?? 0;
+                  final price = double.tryParse(priceCtrl.text) ?? 0;
+                  if (qty <= 0 || price <= 0) return;
+                  if (qty > product.quantity) {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text(SW.outOfStock)));
+                    return;
+                  }
+                  context.read<SalesProvider>().addToCart(SaleItemModel(
+                        productId: product.id!,
+                        productName: product.name,
+                        quantity: qty,
+                        unitPrice: price,
+                        subtotal: price * qty,
+                      ));
+                  Navigator.pop(dialogContext);
+                },
+                child: const Text(SW.add),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -265,7 +317,6 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
             ),
             const SizedBox(height: 16),
             if (_paymentMethod == SW.credit) ...[
-              // ---- Tafuta mteja aliyepo kwanza (kuzuia wateja pacha) ----
               TextField(
                 controller: _searchCtrl,
                 decoration: InputDecoration(
