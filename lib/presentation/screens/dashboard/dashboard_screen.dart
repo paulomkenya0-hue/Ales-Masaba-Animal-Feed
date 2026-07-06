@@ -11,12 +11,14 @@ import '../credit/credit_list_screen.dart';
 import '../customers/customer_list_screen.dart';
 import '../expenses/expense_screen.dart';
 import '../reports/reports_screen.dart';
+import '../reports/my_sales_report_screen.dart';
 import '../backup/backup_screen.dart';
 import '../settings/settings_screen.dart';
 import '../about/about_screen.dart';
 import '../auth/login_screen.dart';
 import '../../widgets/weekly_sales_chart.dart';
 import '../../widgets/daily_closing_dialog.dart';
+import '../../widgets/connectivity_banner.dart';
 
 /// DashboardScreen - Mwonekano mkuu wa programu: takwimu, arifa, na uingiaji wa moduli zote
 class DashboardScreen extends StatefulWidget {
@@ -68,10 +70,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ],
       ),
-      body: dash.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: () => dash.loadDashboard(),
+      body: Column(
+        children: [
+          const ConnectivityBanner(),
+          Expanded(
+            child: dash.isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : RefreshIndicator(
+                    onRefresh: () => dash.loadDashboard(),
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.all(16),
@@ -152,6 +158,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ),
             ),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NewSaleScreen())),
         icon: const Icon(Icons.add_shopping_cart),
@@ -220,6 +229,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           _actionChip(context, SW.products, Icons.inventory_2_outlined, const ProductListScreen()),
         _actionChip(context, SW.customers, Icons.people_alt_outlined, const CustomerListScreen()),
         _actionChip(context, SW.creditList, Icons.credit_score_outlined, const CreditListScreen()),
+        if (!isSuperAdmin)
+          _actionChip(context, SW.mySalesReport, Icons.bar_chart_outlined, const MySalesReportScreen()),
         if (isSuperAdmin) ...[
           _actionChip(context, SW.expenses, Icons.receipt_long_outlined, const ExpenseScreen()),
           _actionChip(context, SW.reports, Icons.bar_chart_outlined, const ReportsScreen()),
