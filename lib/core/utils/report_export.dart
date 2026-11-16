@@ -169,16 +169,22 @@ class ReportExporter {
       ex.TextCellValue('Risiti'),
       ex.TextCellValue('Tarehe'),
       ex.TextCellValue('Mteja'),
+      ex.TextCellValue('Muuzaji'),
       ex.TextCellValue('Njia ya Malipo'),
       ex.TextCellValue('Jumla'),
+      ex.TextCellValue('Kilicholipwa'),
+      ex.TextCellValue('Salio'),
     ]);
     for (final s in sales) {
       salesSheet.appendRow([
         ex.TextCellValue(s.receiptNumber),
         ex.TextCellValue(_dateFmt.format(DateTime.parse(s.saleDate))),
         ex.TextCellValue(s.customerName ?? '—'),
+        ex.TextCellValue(s.cashierName ?? '—'),
         ex.TextCellValue(s.paymentMethod),
         ex.DoubleCellValue(s.totalAmount),
+        ex.DoubleCellValue(s.amountPaid),
+        ex.DoubleCellValue(s.balance),
       ]);
     }
 
@@ -196,10 +202,11 @@ class ReportExporter {
   // ---------------------------------------------------------------------
   static Future<void> exportCsv(List<SaleModel> sales, String periodLabel) async {
     final buffer = StringBuffer();
-    buffer.writeln('Risiti,Tarehe,Mteja,Njia ya Malipo,Jumla');
+    buffer.writeln('Risiti,Tarehe,Mteja,Muuzaji,Njia ya Malipo,Jumla,Kilicholipwa,Salio');
     for (final s in sales) {
       final customer = (s.customerName ?? '—').replaceAll(',', ' ');
-      buffer.writeln('${s.receiptNumber},${_dateFmt.format(DateTime.parse(s.saleDate))},$customer,${s.paymentMethod},${s.totalAmount}');
+      final seller = (s.cashierName ?? '—').replaceAll(',', ' ');
+      buffer.writeln('${s.receiptNumber},${_dateFmt.format(DateTime.parse(s.saleDate))},$customer,$seller,${s.paymentMethod},${s.totalAmount},${s.amountPaid},${s.balance}');
     }
 
     final dir = await getTemporaryDirectory();

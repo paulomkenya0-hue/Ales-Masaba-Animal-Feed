@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/constants/strings_sw.dart';
 import '../../../data/models/customer_model.dart';
 import '../../../data/models/credit_model.dart';
 import '../../../data/repositories/credit_repository.dart';
+import '../../providers/auth_provider.dart';
+import '../../widgets/record_payment_dialog.dart';
 
 /// CustomerDetailScreen - "Statement" kamili ya mteja mmoja: historia ya
 /// madeni yote yanayodaiwa + salio linaloendelea (running balance), pamoja
@@ -32,7 +35,12 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
 
   Future<void> _load() async {
     setState(() => _loading = true);
-    final all = await _repo.getActiveCredits();
+    List<CreditSaleModel> all = [];
+    try {
+      final auth = context.read<AuthProvider>();
+      all = await _repo.getActiveCredits(createdBy: auth.isSuperAdmin ? null : auth.currentUser?.uid);
+    } catch (_) {}
+    if (!mounted) return;
     setState(() {
       _history = all.where((c) => c.customerId == widget.customer.id).toList();
       _loading = false;
@@ -41,43 +49,9 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
 
   double get _totalBalance => _history.fold(0, (sum, c) => sum + c.balance);
 
-  void _showPaymentDialog(CreditSaleModel credit) {
-    final amountCtrl = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('${SW.makePayment} - ${widget.customer.name}'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('${SW.amountOwed}: ${_currencyFmt.format(credit.balance)}'),
-            const SizedBox(height: 12),
-            TextField(
-              controller: amountCtrl,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: SW.makePayment),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text(SW.cancel)),
-          ElevatedButton(
-            onPressed: () async {
-              final amount = double.tryParse(amountCtrl.text) ?? 0;
-              if (amount <= 0 || credit.id == null) return;
-              await _repo.recordPayment(credit.id!, amount);
-              if (context.mounted) {
-                Navigator.pop(context);
-                _load();
-              }
-            },
-            child: const Text(SW.confirm),
-          ),
-        ],
-      ),
-    );
+  Future<void> _showPaymentDialog(CreditSaleModel credit) async {
+    final ok = await RecordPaymentDialog.show(context, credit);
+    if (ok) _load();
   }
 
   @override

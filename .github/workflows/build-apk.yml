@@ -1,41 +1,52 @@
-name: Jenga APK (Build Android APK)
-
-# Hii hujenga APK kiotomatiki kwenye wingu (GitHub servers) kila unapopandisha (push) code.
-# Hauitaji Flutter au Android Studio kwenye simu yako - simu inahitajika tu kuhariri faili
-# na kupandisha mabadiliko (kwa mfano kupitia app ya "Working Copy" / "GitHub" / "Termux" / "Codemagic").
+name: Build Ales Masaba Android APK
 
 on:
   push:
-    branches: [ main, master ]
-  workflow_dispatch: {}   # huruhusu kubonyeza "Run workflow" moja kwa moja kwenye GitHub app
+    branches:
+      - main
+  workflow_dispatch:
 
 jobs:
   build:
+    name: Build Android APK
     runs-on: ubuntu-latest
+    timeout-minutes: 45
+
     steps:
-      - name: Pakua Code (Checkout)
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Weka Java
+      - name: Setup Java 17
         uses: actions/setup-java@v4
         with:
-          distribution: 'zulu'
+          distribution: zulu
           java-version: '17'
 
-      - name: Weka Flutter SDK
+      - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.0'
-          channel: 'stable'
+          channel: stable
+          cache: true
 
-      - name: Pakua Vifurushi (pub get)
+      - name: Flutter Version
+        run: flutter --version
+
+      - name: Install Dependencies
         run: flutter pub get
 
-      - name: Jenga APK (Release)
+      - name: Analyze Flutter Code
+        run: flutter analyze --no-fatal-infos
+
+      - name: Run Tests
+        run: flutter test
+
+      - name: Build Release APK
         run: flutter build apk --release
 
-      - name: Hifadhi APK kama Matokeo (Artifact)
+      - name: Upload APK
+        if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: ales-masaba-feed-apk
+          name: Ales-Masaba-Android-APK
           path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error

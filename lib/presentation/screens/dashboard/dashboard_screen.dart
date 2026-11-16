@@ -15,6 +15,8 @@ import '../reports/my_sales_report_screen.dart';
 import '../backup/backup_screen.dart';
 import '../settings/settings_screen.dart';
 import '../about/about_screen.dart';
+import '../assistant/assistant_screen.dart';
+import '../products/stock_movements_screen.dart';
 import '../auth/login_screen.dart';
 import '../../widgets/weekly_sales_chart.dart';
 import '../../widgets/daily_closing_dialog.dart';
@@ -35,8 +37,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<DashboardProvider>().loadDashboard();
+      _reload();
     });
+  }
+
+  Future<void> _reload() {
+    final auth = context.read<AuthProvider>();
+    return context.read<DashboardProvider>().loadDashboard(
+          isSuperAdmin: auth.isSuperAdmin,
+          userId: auth.currentUser?.uid,
+        );
   }
 
   @override
@@ -77,7 +87,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: dash.isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : RefreshIndicator(
-                    onRefresh: () => dash.loadDashboard(),
+                    onRefresh: _reload,
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.all(16),
@@ -85,7 +95,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Cashier haoni takwimu za jumla za biashara (stock/ripoti ya fedha)
-                    if (!isSuperAdmin)
+                    if (!isSuperAdmin) ...[
                       Card(
                         color: AppColors.primaryGreen.withOpacity(0.08),
                         child: const Padding(
@@ -96,13 +106,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               SizedBox(width: 12),
                               Expanded(
                                 child: Text(
-                                  'Karibu! Tumia kitufe cha "Uzo Mpya" chini kuanza mauzo.',
+                                  'Karibu! Tumia kitufe cha "Mauzo Mapya" chini kuanza mauzo.',
                                 ),
                               ),
                             ],
                           ),
                         ),
                       ),
+                      const SizedBox(height: 12),
+                      GridView.count(
+                        crossAxisCount: 2,
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        mainAxisSpacing: 12,
+                        crossAxisSpacing: 12,
+                        childAspectRatio: 1.3,
+                        children: [
+                          _statCard(SW.myTodaySales, _currencyFmt.format(dash.todaySales), Icons.point_of_sale, AppColors.primaryGreen),
+                          _statCard(SW.myTotalSalesCount, '${dash.todaySalesCount}', Icons.receipt_long_outlined, AppColors.darkGreen),
+                          _statCard('Madeni Niliyoandika', _currencyFmt.format(dash.totalOutstandingCredit), Icons.people_outline, AppColors.danger),
+                          _statCard(SW.lowStockProducts, '${dash.lowStockProducts.length}', Icons.warning_amber, AppColors.warning),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                    ],
 
                     if (isSuperAdmin) ...[
                       if (dash.lowStockProducts.isNotEmpty || dash.todaySales == 0 || dash.backupOverdue)
@@ -120,6 +147,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           _statCard(SW.todayProfit, _currencyFmt.format(dash.todayProfit), Icons.trending_up, AppColors.lightGreen),
                           _statCard(SW.weeklySales, _currencyFmt.format(dash.weeklySales), Icons.calendar_view_week, AppColors.warning),
                           _statCard(SW.monthlySales, _currencyFmt.format(dash.monthlySales), Icons.calendar_month, AppColors.darkGreen),
+                          _statCard('Mauzo ya Mwaka', _currencyFmt.format(dash.yearlySales), Icons.calendar_today, AppColors.primaryGreen),
                           _statCard(SW.customersWithCredit, _currencyFmt.format(dash.totalOutstandingCredit), Icons.people_outline, AppColors.danger),
                           _statCard(SW.lowStockProducts, '${dash.lowStockProducts.length}', Icons.warning_amber, AppColors.warning),
                         ],
@@ -138,6 +166,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             trailing: Text(_currencyFmt.format(dash.highestCreditCustomer!['balance'])),
                           ),
                         ),
+                      if (dash.cashierPerformance.isNotEmpty) _rankCard('Utendaji wa Wauzaji (Mwezi huu)', dash.cashierPerformance),
+                      if (dash.branchSales.length > 1) _rankCard('Mauzo kwa Tawi (Mwezi huu)', dash.branchSales),
                       const SizedBox(height: 16),
                     ],
 
@@ -166,6 +196,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
         icon: const Icon(Icons.add_shopping_cart),
         label: const Text(SW.newSale),
         backgroundColor: AppColors.primaryGreen,
+      ),
+    );
+  }
+
+  Widget _rankCard(String title, List<Map<String, dynamic>> rows) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            ...rows.take(5).map((r) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 3),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(child: Text('${r['name']} (${r['count']})', overflow: TextOverflow.ellipsis)),
+                      Text(_currencyFmt.format(r['total']), style: const TextStyle(fontWeight: FontWeight.w600)),
+                    ],
+                  ),
+                )),
+          ],
+        ),
       ),
     );
   }
@@ -227,6 +282,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       children: [
         if (isSuperAdmin)
           _actionChip(context, SW.products, Icons.inventory_2_outlined, const ProductListScreen()),
+        if (isSuperAdmin)
+          _actionChip(context, 'Historia ya Hifadhi', Icons.swap_vert, const StockMovementsScreen()),
+        _actionChip(context, 'Msaidizi', Icons.smart_toy_outlined, const AssistantScreen()),
         _actionChip(context, SW.customers, Icons.people_alt_outlined, const CustomerListScreen()),
         _actionChip(context, SW.creditList, Icons.credit_score_outlined, const CreditListScreen()),
         if (!isSuperAdmin)

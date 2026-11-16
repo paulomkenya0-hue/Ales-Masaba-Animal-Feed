@@ -90,7 +90,9 @@ service cloud.firestore {
         // (hii ndiyo inayotokea wakati wa mauzo - punguza stock).
         (isActiveUser() &&
           request.resource.data.diff(resource.data).affectedKeys()
-            .hasOnly(['quantity', 'updated_at']));
+            .hasOnly(['quantity', 'updated_at']) &&
+          request.resource.data.quantity >= 0 &&
+          request.resource.data.quantity <= resource.data.quantity);
     }
 
     // ------------------------------------------------------------------
@@ -108,10 +110,20 @@ service cloud.firestore {
     match /sales/{id} {
       // Cashier anaona TU mauzo aliyoyafanya yeye mwenyewe (user_id == uid
       // yake). Super Admin anaona yote (Ripoti).
+      // 'resource == null' inaruhusu transaction kuangalia kama risiti ipo (kuzuia
+      // kurudiwa) - bila hii, kusoma doc isiyokuwepo kunakataliwa kwa Cashier.
       allow read: if isSuperAdmin() ||
-        (isActiveUser() && resource.data.user_id == request.auth.uid);
-      allow create: if isActiveUser() && request.resource.data.user_id == request.auth.uid;
-      allow update, delete: if isSuperAdmin();
+        (isActiveUser() && (resource == null || resource.data.user_id == request.auth.uid));
+      allow create: if isActiveUser() && request.resource.data.user_id == request.auth.uid &&
+        (!('amount_paid' in request.resource.data) ||
+          (request.resource.data.amount_paid >= 0 &&
+           request.resource.data.amount_paid <= request.resource.data.total_amount));
+      // Cashier anaruhusiwa kubadilisha TU sehemu za malipo (wakati wa kulipa deni).
+      allow update: if isSuperAdmin() ||
+        (isActiveUser() &&
+          request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['amount_paid', 'balance', 'payment_status']));
+      allow delete: if isSuperAdmin();
     }
 
     // ------------------------------------------------------------------
@@ -123,7 +135,12 @@ service cloud.firestore {
       allow create: if isActiveUser() && request.resource.data.created_by == request.auth.uid;
       // Kurekodi malipo (amount_paid, status) - watumiaji wote hai
       // wanaruhusiwa (mteja anaweza kulipa deni kwa Cashier yeyote).
-      allow update: if isActiveUser();
+      // Malipo hayawezi kupunguza kiasi kilicholipwa wala kuzidi deni.
+      allow update: if isSuperAdmin() ||
+        (isActiveUser() &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['amount_paid', 'status']) &&
+          request.resource.data.amount_paid >= resource.data.amount_paid &&
+          request.resource.data.amount_paid <= resource.data.amount_owed);
       allow delete: if isSuperAdmin();
 
       // payments/{paymentId} - subcollection ya historia ya malipo
@@ -131,7 +148,7 @@ service cloud.firestore {
         allow read: if isSuperAdmin() ||
           (isActiveUser() &&
             get(/databases/$(database)/documents/credit_sales/$(id)).data.created_by == request.auth.uid);
-        allow create: if isActiveUser();
+        allow create: if isActiveUser() && request.resource.data.amount > 0;
         allow update, delete: if isSuperAdmin();
       }
     }
@@ -142,6 +159,23 @@ service cloud.firestore {
     // ------------------------------------------------------------------
     match /expenses/{id} {
       allow read, write: if isSuperAdmin();
+    }
+
+    // ------------------------------------------------------------------
+    // stock_movements/{id} - Historia ya mabadiliko ya hifadhi. Inaandikwa
+    // ndani ya transaction ya mauzo/marekebisho; haibadilishwi wala kufutwa.
+    // ------------------------------------------------------------------
+    match /stock_movements/{id} {
+      allow read: if isSuperAdmin();
+      allow create: if isActiveUser();
+      allow update, delete: if false;
+    }
+
+    // ------------------------------------------------------------------
+    // counters/{id} - Kaunta ya namba za risiti (receipts_YYYYMMDD)
+    // ------------------------------------------------------------------
+    match /counters/{id} {
+      allow read, write: if isActiveUser();
     }
 
     // ------------------------------------------------------------------

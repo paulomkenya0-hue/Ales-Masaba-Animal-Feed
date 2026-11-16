@@ -57,6 +57,10 @@ class PaymentModel {
   final double amount;
   final String paymentDate;
   final String? notes;
+  final String method; // Fedha Taslimu | Pesa ya Simu
+  final String? reference; // namba ya muamala (Pesa ya Simu)
+  final String? cashierId;
+  final String? cashierName;
 
   PaymentModel({
     this.id,
@@ -64,6 +68,10 @@ class PaymentModel {
     required this.amount,
     required this.paymentDate,
     this.notes,
+    this.method = 'Fedha Taslimu',
+    this.reference,
+    this.cashierId,
+    this.cashierName,
   });
 
   factory PaymentModel.fromMap(Map<String, dynamic> map, {String? id}) => PaymentModel(
@@ -72,6 +80,10 @@ class PaymentModel {
         amount: (map['amount'] as num).toDouble(),
         paymentDate: map['payment_date'] as String,
         notes: map['notes'] as String?,
+        method: map['method'] as String? ?? 'Fedha Taslimu',
+        reference: map['reference'] as String?,
+        cashierId: map['cashier_id'] as String?,
+        cashierName: map['cashier_name'] as String?,
       );
 
   Map<String, dynamic> toMap() => {
@@ -79,5 +91,9 @@ class PaymentModel {
         'amount': amount,
         'payment_date': paymentDate,
         'notes': notes,
+        'method': method,
+        'reference': reference,
+        'cashier_id': cashierId,
+        'cashier_name': cashierName,
       };
 }

@@ -5,6 +5,8 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/constants/strings_sw.dart';
 import '../../../data/repositories/credit_repository.dart';
 import '../../../data/models/credit_model.dart';
+import '../../providers/auth_provider.dart';
+import '../../widgets/record_payment_dialog.dart';
 
 /// CreditListScreen - Orodha ya wateja wenye mkopo, malipo ya sehemu/kamili, historia
 class CreditListScreen extends StatefulWidget {
@@ -28,47 +30,27 @@ class _CreditListScreenState extends State<CreditListScreen> {
 
   Future<void> _load() async {
     setState(() => _loading = true);
-    _credits = await _repo.getActiveCredits();
-    setState(() => _loading = false);
+    try {
+      final auth = context.read<AuthProvider>();
+      // Cashier anaona madeni aliyoyaanzisha yeye tu (Firestore Rules)
+      _credits = await _repo.getActiveCredits(createdBy: auth.isSuperAdmin ? null : auth.currentUser?.uid);
+    } catch (e) {
+      _credits = [];
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${SW.error}: $e')));
+      }
+    }
+    if (mounted) setState(() => _loading = false);
   }
 
-  void _showPaymentDialog(CreditSaleModel credit) {
-    final amountCtrl = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(credit.customerName ?? SW.customer),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('${SW.amountOwed}: ${_currencyFmt.format(credit.balance)}'),
-            const SizedBox(height: 12),
-            TextField(
-              controller: amountCtrl,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: SW.makePayment),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text(SW.cancel)),
-          ElevatedButton(
-            onPressed: () async {
-              final amount = double.tryParse(amountCtrl.text) ?? 0;
-              if (amount <= 0 || credit.id == null) return;
-              await _repo.recordPayment(credit.id!, amount);
-              if (context.mounted) {
-                Navigator.pop(context);
-                _load();
-              }
-            },
-            child: const Text(SW.confirm),
-          ),
-        ],
-      ),
-    );
+  Future<void> _showPaymentDialog(CreditSaleModel credit) async {
+    final ok = await RecordPaymentDialog.show(context, credit);
+    if (ok) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Malipo yamerekodiwa')));
+      }
+      _load();
+    }
   }
 
   @override

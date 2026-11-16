@@ -42,8 +42,10 @@ class _DailyClosingDialogState extends State<DailyClosingDialog> {
 
     final sales = await _salesRepo.getSalesBetween(start, end);
     _totalSales = sales.fold(0, (sum, s) => sum + s.totalAmount);
-    _cashSales = sales.where((s) => s.paymentMethod == SW.cash).fold(0, (sum, s) => sum + s.totalAmount);
-    _creditSales = sales.where((s) => s.paymentMethod == SW.credit).fold(0, (sum, s) => sum + s.totalAmount);
+    // Fedha zilizopokelewa wakati wa mauzo (Taslimu + Pesa ya Simu), pamoja na malipo ya sehemu
+    _cashSales = sales.fold(0, (sum, s) => sum + s.amountPaid);
+    // Deni lililotokana na mauzo ya leo (jumla - kilicholipwa)
+    _creditSales = sales.fold(0, (sum, s) => sum + s.balance);
     _totalExpenses = await _expenseRepo.getTotalExpenses(start, end);
 
     if (mounted) setState(() => _loading = false);
